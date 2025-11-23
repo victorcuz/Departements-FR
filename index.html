@@ -126,17 +126,6 @@
       border-color: #818cf8;
     }
 
-    .timer {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #b91c1c;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #fee2e2;
-      border: 1px solid #fecaca;
-      white-space: nowrap;
-    }
-
     /* ---------- Boutons "chip" ---------- */
     .chip-button {
       cursor: pointer;
@@ -296,6 +285,7 @@
       outline: none;
       background: #ffffff;
       color: #111827;
+      transition: color 0.15s ease, border-color 0.15s ease;
     }
 
     #answerInput::placeholder {
@@ -418,14 +408,15 @@
             </select>
           </div>
 
-          <!-- Type de session (classique / chrono) -->
+          <!-- Taille de la session -->
           <div class="controls-row">
             <span class="control-label">Session :</span>
-            <select id="sessionModeSelect">
-              <option value="classic">Sans chrono</option>
-              <option value="chrono">Chrono 60 s</option>
+            <select id="sessionSizeSelect">
+              <option value="10">10 questions</option>
+              <option value="20">20 questions</option>
+              <option value="50">50 questions</option>
+              <option value="all" selected>Tous les départements sélectionnés</option>
             </select>
-            <span id="timerDisplay" class="timer hidden">60 s</span>
           </div>
         </div>
 
@@ -466,14 +457,14 @@
           />
           <div class="buttons">
             <button id="validateBtn" class="primary">Valider</button>
-            <button id="nextBtn" class="secondary" disabled>Suivant</button>
+            <button id="restartBtn" class="secondary">Nouvelle session</button>
           </div>
         </div>
 
         <div id="feedback"></div>
         <div id="score">Score : 0 / 0</div>
         <div class="extra-info">
-          Les questions parcourent tous les départements sélectionnés avant de recommencer.
+          Les questions parcourent les départements sélectionnés dans un ordre aléatoire, jusqu’à la fin de la session.
         </div>
       </div>
     </div>
@@ -614,14 +605,13 @@
 
     // --- Références DOM ---
     const modeSelect = document.getElementById("modeSelect");
-    const sessionModeSelect = document.getElementById("sessionModeSelect");
-    const timerDisplay = document.getElementById("timerDisplay");
+    const sessionSizeSelect = document.getElementById("sessionSizeSelect");
 
     const questionText = document.getElementById("questionText");
     const questionLabel = document.getElementById("questionLabel");
     const answerInput = document.getElementById("answerInput");
     const validateBtn = document.getElementById("validateBtn");
-    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
     const feedback = document.getElementById("feedback");
     const scoreEl = document.getElementById("score");
 
@@ -634,18 +624,13 @@
 
     // --- État du quiz ---
     let currentDept = null;
-    let totalQuestions = 0;
+    let questionsAsked = 0;
     let goodAnswers = 0;
+    let sessionTarget = 0;
     let hasAnsweredCurrent = false;
     let selectedRegions = new Set();
-
-    // "Pioche" de questions : tous les départements du pool, mélangés
     let questionQueue = [];
-
-    // Chrono
-    let chronoActive = false;
-    let chronoTimeLeft = 60;
-    let chronoIntervalId = null;
+    let autoNextTimeoutId = null;
 
     // --- Utilitaires ---
 
@@ -708,7 +693,6 @@
           "Aucun département disponible. Décoche quelques régions pour continuer.";
         answerInput.disabled = true;
         validateBtn.disabled = true;
-        nextBtn.disabled = true;
         return;
       }
 
@@ -734,11 +718,11 @@
       feedback.textContent = "";
       feedback.className = "";
       answerInput.value = "";
+      answerInput.style.color = "";
       answerInput.disabled = false;
       answerInput.focus();
       hasAnsweredCurrent = false;
       validateBtn.disabled = false;
-      nextBtn.disabled = true;
 
       questionLabel.textContent =
         mode === "name-to-code"
@@ -757,70 +741,52 @@
     }
 
     function updateScore() {
-      scoreEl.textContent = "Score : " + goodAnswers + " / " + totalQuestions;
+      scoreEl.textContent = "Score : " + goodAnswers + " / " + questionsAsked;
     }
 
-    function resetScore() {
-      totalQuestions = 0;
+    function endSession() {
+      answerInput.disabled = true;
+      validateBtn.disabled = true;
+      answerInput.style.color = "";
+      feedback.className = "";
+      feedback.textContent =
+        "Session terminée : " +
+        goodAnswers +
+        " bonne(s) réponse(s) sur " +
+        questionsAsked +
+        ".";
+    }
+
+    function startSession() {
+      const pool = getActiveDepartments();
+      if (pool.length === 0) {
+        questionText.textContent =
+          "Aucun département disponible. Décoche quelques régions pour commencer.";
+        answerInput.disabled = true;
+        validateBtn.disabled = true;
+        return;
+      }
+
+      const mode = sessionSizeSelect.value;
+      if (mode === "all") {
+        sessionTarget = pool.length;
+      } else {
+        const n = parseInt(mode, 10);
+        sessionTarget = Math.min(n, pool.length);
+      }
+
+      questionsAsked = 0;
       goodAnswers = 0;
       updateScore();
-    }
-
-    // --- Chrono ---
-
-    function updateTimerDisplay() {
-      timerDisplay.textContent = chronoTimeLeft + " s";
-    }
-
-    function startChrono() {
-      if (chronoIntervalId) clearInterval(chronoIntervalId);
-
-      chronoActive = true;
-      chronoTimeLeft = 60;
-      timerDisplay.classList.remove("hidden");
-      updateTimerDisplay();
-      resetScore();
-      feedback.textContent =
-        "Chrono lancé : réponds au maximum de questions en 60 secondes.";
+      feedback.textContent = "";
       feedback.className = "";
 
       rebuildQuestionQueue();
       pickNextDepartment();
       updateQuestion();
-
-      chronoIntervalId = setInterval(() => {
-        chronoTimeLeft--;
-        if (chronoTimeLeft <= 0) {
-          endChrono();
-        } else {
-          updateTimerDisplay();
-        }
-      }, 1000);
     }
 
-    function endChrono() {
-      if (!chronoActive) return;
-      chronoActive = false;
-      if (chronoIntervalId) {
-        clearInterval(chronoIntervalId);
-        chronoIntervalId = null;
-      }
-      chronoTimeLeft = 0;
-      updateTimerDisplay();
-
-      feedback.textContent =
-        "Temps écoulé ! Résultat : " +
-        goodAnswers +
-        " bonne(s) réponse(s) sur " +
-        totalQuestions +
-        ".";
-      feedback.className = "";
-      answerInput.disabled = true;
-      validateBtn.disabled = true;
-      nextBtn.disabled = true;
-    }
-
-    // --- Vérification de la réponse ---
+    // --- Vérification de la réponse + auto-question suivante ---
 
     function checkAnswer() {
       if (hasAnsweredCurrent) return;
@@ -837,12 +803,12 @@
       hasAnsweredCurrent = true;
       validateBtn.disabled = true;
       answerInput.disabled = true;
-      nextBtn.disabled = false;
 
-      totalQuestions++;
+      questionsAsked++;
 
       let isCorrect = false;
       let correctText = "";
+      let correctValueForInput = "";
 
       if (mode === "name-to-code") {
         const expectedCode = currentDept.code;
@@ -854,6 +820,7 @@
           " (" +
           currentDept.name +
           ").";
+        correctValueForInput = currentDept.code;
       } else {
         const expectedNameNorm = normalizeName(currentDept.name);
         const userNameNorm = normalizeName(rawAnswer);
@@ -864,23 +831,39 @@
           " (numéro " +
           currentDept.code +
           ").";
+        correctValueForInput = currentDept.name;
       }
 
       if (isCorrect) {
         goodAnswers++;
         feedback.textContent = "C'est correct. " + correctText;
         feedback.className = "ok";
+        answerInput.style.color = "#15803d";
+        answerInput.value = correctValueForInput;
       } else {
         feedback.textContent = "Ce n'est pas correct. " + correctText;
         feedback.className = "ko";
+        answerInput.style.color = "#b91c1c";
+        answerInput.value = correctValueForInput;
       }
 
       updateScore();
-    }
 
-    function nextQuestion() {
-      pickNextDepartment();
-      updateQuestion();
+      const sessionDone =
+        questionsAsked >= sessionTarget || questionQueue.length === 0;
+
+      if (sessionDone) {
+        if (autoNextTimeoutId) clearTimeout(autoNextTimeoutId);
+        autoNextTimeoutId = setTimeout(() => {
+          endSession();
+        }, 700);
+      } else {
+        if (autoNextTimeoutId) clearTimeout(autoNextTimeoutId);
+        autoNextTimeoutId = setTimeout(() => {
+          pickNextDepartment();
+          updateQuestion();
+        }, 700);
+      }
     }
 
     // --- Filtres de régions ---
@@ -906,9 +889,7 @@
             Array.from(checked).map((cb) => cb.value)
           );
           updatePoolInfo();
-          rebuildQuestionQueue();
-          pickNextDepartment();
-          updateQuestion();
+          startSession();
         });
 
         label.appendChild(checkbox);
@@ -947,30 +928,19 @@
     // --- Événements ---
 
     modeSelect.addEventListener("change", () => {
-      updateQuestion(); // on garde le même département, on change juste la formulation
+      // On garde le même département mais on reformule la question
+      updateQuestion();
     });
 
-    sessionModeSelect.addEventListener("change", () => {
-      const mode = sessionModeSelect.value;
-      if (mode === "chrono") {
-        startChrono();
-      } else {
-        if (chronoIntervalId) {
-          clearInterval(chronoIntervalId);
-          chronoIntervalId = null;
-        }
-        chronoActive = false;
-        timerDisplay.classList.add("hidden");
-        resetScore();
-        feedback.textContent = "";
-        rebuildQuestionQueue();
-        pickNextDepartment();
-        updateQuestion();
-      }
+    sessionSizeSelect.addEventListener("change", () => {
+      startSession();
     });
 
     validateBtn.addEventListener("click", checkAnswer);
-    nextBtn.addEventListener("click", nextQuestion);
+
+    restartBtn.addEventListener("click", () => {
+      startSession();
+    });
 
     answerInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !validateBtn.disabled) {
@@ -989,10 +959,7 @@
     // --- Initialisation ---
     buildRegionFilters();
     buildDepartmentsList();
-    rebuildQuestionQueue();
-    pickNextDepartment();
-    updateQuestion();
-    updateScore();
+    startSession();
   </script>
 </body>
 </html>
