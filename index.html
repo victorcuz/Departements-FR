@@ -462,15 +462,16 @@
         </div>
 
         <div id="feedback"></div>
-        <div id="score">Score : 0 / 0</div>
+        <div id="score">Question : 0 / 0 — Points : 0</div>
         <div class="extra-info">
-          Les questions parcourent les départements sélectionnés dans un ordre aléatoire, jusqu’à la fin de la session.
+          D’abord la session choisie, puis révision des erreurs jusqu’à tout maîtriser.
         </div>
       </div>
     </div>
   </div>
 
   <script>
+    // --- Données départements (avec Outre-mer regroupé) ---
     const DEPARTEMENTS = [
       { code: "01", name: "Ain", region: "Auvergne-Rhône-Alpes" },
       { code: "03", name: "Allier", region: "Auvergne-Rhône-Alpes" },
@@ -606,12 +607,14 @@
     const toggleListBtn = document.getElementById("toggleListBtn");
 
     let currentDept = null;
-    let questionsAsked = 0;
-    let goodAnswers = 0;
-    let sessionTarget = 0;
+    let goodAnswers = 0;          // points
+    let totalQuestionsPlanned = 0; // N (10, 20, 50 ou nb de départements sélectionnés)
     let hasAnsweredCurrent = false;
     let selectedRegions = new Set();
-    let questionQueue = [];
+
+    let mainQueue = [];        // première passe
+    let reviewQueue = [];      // questions ratées
+    let sessionPhase = "main"; // "main" ou "review"
     let autoNextTimeoutId = null;
 
     function shuffle(array) {
@@ -660,30 +663,64 @@
       }
     }
 
-    function rebuildQuestionQueue() {
+    function buildQueuesForSession() {
       const pool = getActiveDepartments();
-      questionQueue = shuffle(pool.slice());
+      let size =
+        sessionSizeSelect.value === "all"
+          ? pool.length
+          : Math.min(parseInt(sessionSizeSelect.value, 10), pool.length);
+
+      const shuffled = shuffle(pool.slice());
+      mainQueue = shuffled.slice(0, size);
+      reviewQueue = [];
+      totalQuestionsPlanned = size;
+      sessionPhase = "main";
     }
 
     function pickNextDepartment() {
-      const pool = getActiveDepartments();
-      if (pool.length === 0) {
-        currentDept = null;
-        questionText.textContent =
-          "Aucun département disponible. Décoche quelques régions pour continuer.";
-        answerInput.disabled = true;
-        validateBtn.disabled = true;
+      if (sessionPhase === "main") {
+        if (mainQueue.length === 0) {
+          if (reviewQueue.length > 0) {
+            sessionPhase = "review";
+          } else {
+            currentDept = null;
+            return;
+          }
+        }
+      }
+
+      if (sessionPhase === "review") {
+        if (reviewQueue.length === 0) {
+          currentDept = null;
+          return;
+        }
+        currentDept = reviewQueue.shift();
+      } else {
+        currentDept = mainQueue.pop();
+      }
+    }
+
+    function updateScore() {
+      if (totalQuestionsPlanned === 0) {
+        scoreEl.textContent = "Question : 0 / 0 — Points : " + goodAnswers;
         return;
       }
 
-      if (questionQueue.length === 0) {
-        rebuildQuestionQueue();
+      let currentIndex;
+      if (sessionPhase === "main") {
+        const answeredMain = totalQuestionsPlanned - mainQueue.length;
+        currentIndex = Math.min(answeredMain, totalQuestionsPlanned);
+      } else {
+        currentIndex = totalQuestionsPlanned; // en révision, tu as déjà vu les N
       }
-      if (questionQueue.length === 0) {
-        currentDept = null;
-        return;
-      }
-      currentDept = questionQueue.pop();
+
+      scoreEl.textContent =
+        "Question : " +
+        currentIndex +
+        " / " +
+        totalQuestionsPlanned +
+        " — Points : " +
+        goodAnswers;
     }
 
     function updateQuestion() {
@@ -701,6 +738,8 @@
       validateBtn.disabled = false;
       hasAnsweredCurrent = false;
 
+      updateScore();
+
       questionLabel.textContent =
         mode === "name-to-code"
           ? "Nom du département"
@@ -710,7 +749,7 @@
         questionText.textContent =
           "Quel est le numéro du département : « " + currentDept.name + " » ?";
         answerInput.placeholder = "Ex : 75";
-        answerInput.inputMode = "numeric"; // clavier chiffres
+        answerInput.inputMode = "numeric";
       } else {
         questionText.textContent =
           "Quel est le nom du département numéro « " + currentDept.code + " » ?";
@@ -721,10 +760,6 @@
       answerInput.focus();
     }
 
-    function updateScore() {
-      scoreEl.textContent = "Score : " + goodAnswers + " / " + questionsAsked;
-    }
-
     function endSession() {
       answerInput.disabled = true;
       validateBtn.disabled = true;
@@ -733,8 +768,8 @@
       feedback.textContent =
         "Session terminée : " +
         goodAnswers +
-        " bonne(s) réponse(s) sur " +
-        questionsAsked +
+        " points sur " +
+        totalQuestionsPlanned +
         ".";
     }
 
@@ -745,30 +780,25 @@
           "Aucun département disponible. Décoche quelques régions pour commencer.";
         answerInput.disabled = true;
         validateBtn.disabled = true;
+        totalQuestionsPlanned = 0;
+        goodAnswers = 0;
+        updateScore();
         return;
       }
 
-      const mode = sessionSizeSelect.value;
-      if (mode === "all") {
-        sessionTarget = pool.length;
-      } else {
-        const n = parseInt(mode, 10);
-        sessionTarget = Math.min(n, pool.length);
-      }
-
-      questionsAsked = 0;
+      buildQueuesForSession();
       goodAnswers = 0;
-      updateScore();
       feedback.textContent = "";
       feedback.className = "";
 
-      rebuildQuestionQueue();
+      if (autoNextTimeoutId) clearTimeout(autoNextTimeoutId);
+
       pickNextDepartment();
       updateQuestion();
     }
 
     function checkAnswer() {
-      if (hasAnsweredCurrent) return;
+      if (hasAnsweredCurrent || !currentDept) return;
 
       const mode = modeSelect.value;
       const rawAnswer = answerInput.value;
@@ -782,8 +812,6 @@
       hasAnsweredCurrent = true;
       validateBtn.disabled = true;
       answerInput.disabled = true;
-
-      questionsAsked++;
 
       let isCorrect = false;
       let correctText = "";
@@ -824,24 +852,38 @@
         feedback.className = "ko";
         answerInput.style.color = "#b91c1c";
         answerInput.value = correctValueForInput;
+
+        // en cas d'erreur, on ajoute la question à la file de révision
+        reviewQueue.push(currentDept);
       }
 
       updateScore();
 
-      const sessionDone =
-        questionsAsked >= sessionTarget || questionQueue.length === 0;
+      // reste-t-il des questions (main ou révision) ?
+      let willHaveNextQuestion = false;
+
+      if (sessionPhase === "main") {
+        if (mainQueue.length > 0) {
+          willHaveNextQuestion = true;
+        } else if (reviewQueue.length > 0) {
+          sessionPhase = "review";
+          willHaveNextQuestion = true;
+        }
+      } else {
+        if (reviewQueue.length > 0) {
+          willHaveNextQuestion = true;
+        }
+      }
 
       if (autoNextTimeoutId) clearTimeout(autoNextTimeoutId);
 
-      if (sessionDone) {
-        autoNextTimeoutId = setTimeout(() => {
-          endSession();
-        }, 1000); // 1 seconde
+      if (!willHaveNextQuestion) {
+        autoNextTimeoutId = setTimeout(endSession, 1000);
       } else {
         autoNextTimeoutId = setTimeout(() => {
           pickNextDepartment();
           updateQuestion();
-        }, 1000); // 1 seconde
+        }, 1000);
       }
     }
 
@@ -900,6 +942,7 @@
       departmentsListEl.innerHTML = html;
     }
 
+    // --- Événements ---
     modeSelect.addEventListener("change", () => {
       updateQuestion();
     });
@@ -928,6 +971,7 @@
       departmentsListEl.classList.toggle("hidden");
     });
 
+    // --- Initialisation ---
     buildRegionFilters();
     buildDepartmentsList();
     startSession();
