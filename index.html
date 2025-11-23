@@ -371,6 +371,16 @@
       margin-top: 4px;
     }
 
+    .phase-info {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+    .phase-info strong {
+      color: #4f46e5;
+    }
+
     .extra-info {
       text-align: center;
       font-size: 0.75rem;
@@ -398,7 +408,6 @@
 
         <!-- Contrôles principaux -->
         <div class="top-controls">
-          <!-- Mode de question -->
           <div class="controls-row">
             <span class="control-label">Mode :</span>
             <select id="modeSelect">
@@ -407,7 +416,6 @@
             </select>
           </div>
 
-          <!-- Taille de la session -->
           <div class="controls-row">
             <span class="control-label">Session :</span>
             <select id="sessionSizeSelect">
@@ -427,9 +435,7 @@
               Filtres régions
             </button>
           </div>
-          <div id="regionsPanel" class="regions-panel hidden">
-            <!-- Cases à cocher générées en JS -->
-          </div>
+          <div id="regionsPanel" class="regions-panel hidden"></div>
           <div id="poolInfo" class="pool-info"></div>
         </div>
 
@@ -463,6 +469,7 @@
 
         <div id="feedback"></div>
         <div id="score">Question : 0 / 0 — Points : 0</div>
+        <div id="phaseInfo" class="phase-info"></div>
         <div class="extra-info">
           D’abord la session choisie, puis révision des erreurs jusqu’à tout maîtriser.
         </div>
@@ -471,7 +478,7 @@
   </div>
 
   <script>
-    // --- Données départements (avec Outre-mer regroupé) ---
+    // --- Données départements ---
     const DEPARTEMENTS = [
       { code: "01", name: "Ain", region: "Auvergne-Rhône-Alpes" },
       { code: "03", name: "Allier", region: "Auvergne-Rhône-Alpes" },
@@ -598,6 +605,7 @@
     const restartBtn = document.getElementById("restartBtn");
     const feedback = document.getElementById("feedback");
     const scoreEl = document.getElementById("score");
+    const phaseInfo = document.getElementById("phaseInfo");
 
     const regionsPanel = document.getElementById("regionsPanel");
     const toggleRegionsBtn = document.getElementById("toggleRegionsBtn");
@@ -607,13 +615,13 @@
     const toggleListBtn = document.getElementById("toggleListBtn");
 
     let currentDept = null;
-    let goodAnswers = 0;          // points
-    let totalQuestionsPlanned = 0; // N (10, 20, 50 ou nb de départements sélectionnés)
+    let goodAnswers = 0;
+    let totalQuestionsPlanned = 0;
     let hasAnsweredCurrent = false;
     let selectedRegions = new Set();
 
-    let mainQueue = [];        // première passe
-    let reviewQueue = [];      // questions ratées
+    let mainQueue = [];
+    let reviewQueue = [];
     let sessionPhase = "main"; // "main" ou "review"
     let autoNextTimeoutId = null;
 
@@ -675,6 +683,7 @@
       reviewQueue = [];
       totalQuestionsPlanned = size;
       sessionPhase = "main";
+      updatePhaseInfo();
     }
 
     function pickNextDepartment() {
@@ -682,6 +691,7 @@
         if (mainQueue.length === 0) {
           if (reviewQueue.length > 0) {
             sessionPhase = "review";
+            updatePhaseInfo();
           } else {
             currentDept = null;
             return;
@@ -711,7 +721,7 @@
         const answeredMain = totalQuestionsPlanned - mainQueue.length;
         currentIndex = Math.min(answeredMain, totalQuestionsPlanned);
       } else {
-        currentIndex = totalQuestionsPlanned; // en révision, tu as déjà vu les N
+        currentIndex = totalQuestionsPlanned;
       }
 
       scoreEl.textContent =
@@ -721,6 +731,17 @@
         totalQuestionsPlanned +
         " — Points : " +
         goodAnswers;
+    }
+
+    function updatePhaseInfo() {
+      if (sessionPhase === "main") {
+        phaseInfo.textContent = "Phase 1 : découverte des départements.";
+      } else {
+        phaseInfo.innerHTML =
+          'Phase 2 : <strong>révision</strong> des erreurs (' +
+          reviewQueue.length +
+          " à revoir).";
+      }
     }
 
     function updateQuestion() {
@@ -734,11 +755,11 @@
       feedback.className = "";
       answerInput.value = "";
       answerInput.style.color = "";
-      answerInput.disabled = false;
       validateBtn.disabled = false;
       hasAnsweredCurrent = false;
 
       updateScore();
+      updatePhaseInfo();
 
       questionLabel.textContent =
         mode === "name-to-code"
@@ -757,11 +778,11 @@
         answerInput.inputMode = "text";
       }
 
-      answerInput.focus();
+      // focus pour garder / rouvrir le clavier automatiquement
+      setTimeout(() => answerInput.focus(), 0);
     }
 
     function endSession() {
-      answerInput.disabled = true;
       validateBtn.disabled = true;
       answerInput.style.color = "";
       feedback.className = "";
@@ -771,6 +792,7 @@
         " points sur " +
         totalQuestionsPlanned +
         ".";
+      updatePhaseInfo();
     }
 
     function startSession() {
@@ -778,11 +800,11 @@
       if (pool.length === 0) {
         questionText.textContent =
           "Aucun département disponible. Décoche quelques régions pour commencer.";
-        answerInput.disabled = true;
         validateBtn.disabled = true;
         totalQuestionsPlanned = 0;
         goodAnswers = 0;
         updateScore();
+        phaseInfo.textContent = "";
         return;
       }
 
@@ -811,7 +833,6 @@
 
       hasAnsweredCurrent = true;
       validateBtn.disabled = true;
-      answerInput.disabled = true;
 
       let isCorrect = false;
       let correctText = "";
@@ -852,14 +873,12 @@
         feedback.className = "ko";
         answerInput.style.color = "#b91c1c";
         answerInput.value = correctValueForInput;
-
-        // en cas d'erreur, on ajoute la question à la file de révision
         reviewQueue.push(currentDept);
       }
 
       updateScore();
+      updatePhaseInfo();
 
-      // reste-t-il des questions (main ou révision) ?
       let willHaveNextQuestion = false;
 
       if (sessionPhase === "main") {
@@ -867,6 +886,7 @@
           willHaveNextQuestion = true;
         } else if (reviewQueue.length > 0) {
           sessionPhase = "review";
+          updatePhaseInfo();
           willHaveNextQuestion = true;
         }
       } else {
@@ -951,7 +971,10 @@
       startSession();
     });
 
-    validateBtn.addEventListener("click", checkAnswer);
+    validateBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      checkAnswer();
+    });
 
     restartBtn.addEventListener("click", () => {
       startSession();
