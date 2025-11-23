@@ -5,25 +5,24 @@
   <title>Quiz des départements français</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* -------- Styles de base & fond -------- */
+    /* ---------- Base & fond (mobile first) ---------- */
     * {
       box-sizing: border-box;
     }
 
     body {
       margin: 0;
-      padding: 16px;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
       background:
-        radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.25), transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(236, 72, 153, 0.2), transparent 55%),
-        linear-gradient(135deg, #e5e7eb, #f9fafb);
-      color: #111827;
+        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.45), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.4), transparent 50%),
+        linear-gradient(145deg, #020617, #0f172a);
+      color: #f9fafb;
     }
 
     .hidden {
@@ -31,112 +30,145 @@
     }
 
     .app {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(12px);
-      padding: 20px 20px 18px;
-      border-radius: 18px;
-      box-shadow:
-        0 18px 40px rgba(15, 23, 42, 0.22),
-        0 0 0 1px rgba(148, 163, 184, 0.35);
-      width: 100%;
+      flex: 1;
       max-width: 520px;
+      margin: 0 auto;
+      padding: 10px 10px 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, #1e293b, #020617 65%);
+      border-radius: 20px;
+      box-shadow:
+        0 18px 35px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.25);
+      padding: 16px 16px 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       position: relative;
       overflow: hidden;
     }
 
-    .app::before {
+    .card::before {
       content: "";
       position: absolute;
-      inset: 0;
-      pointer-events: none;
+      inset: -40%;
       background:
-        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.08), transparent 50%),
-        radial-gradient(circle at 90% 100%, rgba(52, 211, 153, 0.1), transparent 55%);
+        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.25), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.25), transparent 55%),
+        radial-gradient(circle at 30% 120%, rgba(244, 63, 94, 0.25), transparent 60%);
       opacity: 0.9;
+      pointer-events: none;
+      mix-blend-mode: screen;
     }
 
-    .app-inner {
+    .card-inner {
       position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
 
     h1 {
-      font-size: 1.5rem;
-      margin: 0 0 10px;
+      font-size: 1.4rem;
+      margin: 2px 0 8px;
       text-align: center;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #e5e7eb;
     }
 
-    /* -------- Barres de contrôle -------- */
-    .controls {
+    .subtitle {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+
+    /* ---------- Barres de contrôle ---------- */
+    .top-controls {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .controls-row {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .control-label {
-      font-size: 0.9rem;
-      color: #4b5563;
+      font-size: 0.85rem;
+      color: #cbd5f5;
+      white-space: nowrap;
     }
 
     select {
-      padding: 7px 10px;
+      flex: 1;
+      padding: 8px 10px;
       font-size: 0.9rem;
       border-radius: 999px;
-      border: 1px solid #cbd5f5;
-      background: #f9fafb;
-      color: #111827;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.85);
+      color: #e5e7eb;
       outline: none;
-      min-width: 180px;
+      min-width: 0;
     }
 
     select:focus {
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.75);
+      border-color: rgba(59, 130, 246, 0.9);
     }
 
     .timer {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      color: #dc2626;
+      color: #fecaca;
       padding: 4px 10px;
       border-radius: 999px;
-      background: #fee2e2;
-      border: 1px solid #fecaca;
+      background: rgba(127, 29, 29, 0.9);
+      border: 1px solid rgba(248, 113, 113, 0.75);
+      white-space: nowrap;
     }
 
-    /* -------- Boutons "chip" -------- */
+    /* ---------- Boutons "chip" ---------- */
     .chip-button {
       cursor: pointer;
       padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid #cbd5f5;
-      background: #eef2ff;
+      border: 1px solid rgba(129, 140, 248, 0.7);
+      background: rgba(30, 64, 175, 0.9);
       font-size: 0.75rem;
-      color: #1d4ed8;
+      color: #e5e7eb;
       font-weight: 500;
-      transition: background 0.15s ease, transform 0.05s ease,
-        box-shadow 0.1s ease, border-color 0.15s ease;
+      transition: background 0.12s ease, transform 0.05s ease,
+        box-shadow 0.12s ease, border-color 0.12s ease;
       white-space: nowrap;
     }
 
     .chip-button:hover {
-      background: #e0e7ff;
-      box-shadow: 0 2px 6px rgba(129, 140, 248, 0.45);
+      background: rgba(79, 70, 229, 0.98);
+      box-shadow: 0 2px 8px rgba(129, 140, 248, 0.7);
       transform: translateY(-0.5px);
-      border-color: #93c5fd;
+      border-color: rgba(191, 219, 254, 0.9);
     }
 
-    /* -------- Carte de filtres régions -------- */
+    /* ---------- Carte filtres régions & liste ---------- */
     .filters-card,
     .list-card {
-      background: rgba(249, 250, 251, 0.95);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 64, 175, 0.55));
       border-radius: 14px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
     }
 
     .filters-header,
@@ -145,25 +177,25 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .filters-title {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #6b7280;
+      letter-spacing: 0.1em;
+      color: #cbd5f5;
     }
 
     .regions-panel {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 4px 8px;
-      max-height: 130px;
+      max-height: 120px;
       overflow-y: auto;
       padding-top: 4px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       font-size: 0.8rem;
     }
 
@@ -171,23 +203,26 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      color: #4b5563;
+      color: #e5e7eb;
     }
 
     .region-option input {
-      accent-color: #2563eb;
+      accent-color: #60a5fa;
     }
 
     .pool-info {
       font-size: 0.75rem;
-      color: #6b7280;
+      color: #cbd5f5;
     }
 
-    /* -------- Liste des départements -------- */
+    /* ---------- Liste des départements ---------- */
     .departments-list {
-      max-height: 180px;
+      max-height: 150px;
       overflow-y: auto;
       font-size: 0.8rem;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
     }
 
     .dept-table {
@@ -198,7 +233,7 @@
     .dept-table th,
     .dept-table td {
       padding: 4px 6px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
       text-align: left;
       white-space: nowrap;
     }
@@ -207,8 +242,8 @@
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #6b7280;
-      background: #f3f4f6;
+      color: #9ca3af;
+      background: rgba(15, 23, 42, 0.95);
       position: sticky;
       top: 0;
       z-index: 1;
@@ -216,40 +251,41 @@
 
     .dept-table td.code {
       font-weight: 600;
-      color: #1f2937;
+      color: #e5e7eb;
     }
 
     .dept-table td.name {
-      color: #111827;
+      color: #e5e7eb;
     }
 
     .dept-table td.region {
-      color: #6b7280;
+      color: #9ca3af;
     }
 
-    /* -------- Zone de question -------- */
+    /* ---------- Zone de question ---------- */
     #questionArea {
-      margin-bottom: 10px;
+      margin-top: 6px;
+      margin-bottom: 8px;
       text-align: center;
-      background: rgba(239, 246, 255, 0.9);
-      border-radius: 14px;
-      padding: 12px 12px 14px;
-      border: 1px solid rgba(191, 219, 254, 0.9);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.9), rgba(15, 23, 42, 0.98));
+      border-radius: 16px;
+      padding: 12px 10px 14px;
+      border: 1px solid rgba(129, 140, 248, 0.9);
     }
 
     #questionLabel {
       font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #3b82f6;
+      letter-spacing: 0.12em;
+      color: #bfdbfe;
       margin: 0 0 4px;
     }
 
     #questionText {
-      font-size: 1rem;
+      font-size: 1.1rem;
       margin-bottom: 10px;
       font-weight: 600;
-      color: #1f2937;
+      color: #f9fafb;
     }
 
     #answerInput {
@@ -257,18 +293,23 @@
       padding: 10px 12px;
       font-size: 1rem;
       border-radius: 999px;
-      border: 1px solid #d1d5db;
+      border: 1px solid rgba(191, 219, 254, 0.9);
       margin-bottom: 10px;
       outline: none;
-      background: #ffffff;
+      background: rgba(15, 23, 42, 0.95);
+      color: #f9fafb;
+    }
+
+    #answerInput::placeholder {
+      color: #6b7280;
     }
 
     #answerInput:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.7);
     }
 
-    /* -------- Boutons principaux -------- */
+    /* ---------- Boutons principaux ---------- */
     .buttons {
       display: flex;
       gap: 8px;
@@ -278,64 +319,68 @@
 
     button {
       cursor: pointer;
-      padding: 8px 16px;
+      padding: 10px 16px;
       border-radius: 999px;
       border: none;
       font-size: 0.95rem;
-      font-weight: 500;
+      font-weight: 600;
       background: #2563eb;
       color: #ffffff;
       transition: transform 0.05s ease, box-shadow 0.1s ease,
         background 0.1s ease, opacity 0.1s ease;
+      min-width: 120px;
     }
 
     button.primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.7);
     }
 
     button.secondary {
-      background: #e5e7eb;
-      color: #111827;
+      background: rgba(31, 41, 55, 0.95);
+      color: #e5e7eb;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.9);
     }
 
     button:not([disabled]):hover {
-      box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.9);
       transform: translateY(-1px);
     }
 
     button.secondary:not([disabled]):hover {
-      background: #d1d5db;
-      box-shadow: 0 3px 8px rgba(148, 163, 184, 0.6);
+      background: rgba(55, 65, 81, 0.98);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
     }
 
     button[disabled] {
-      opacity: 0.5;
+      opacity: 0.55;
       cursor: default;
       box-shadow: none;
       transform: none;
     }
 
-    /* -------- Feedback & score -------- */
+    /* ---------- Feedback & score ---------- */
     #feedback {
       min-height: 32px;
-      margin-top: 10px;
+      margin-top: 4px;
       margin-bottom: 4px;
       text-align: center;
       font-size: 0.95rem;
     }
 
     #feedback.ok {
-      color: #166534;
+      color: #bbf7d0;
     }
 
     #feedback.ko {
-      color: #b91c1c;
+      color: #fecaca;
     }
 
     #score {
       text-align: center;
       font-size: 0.9rem;
-      color: #4b5563;
+      color: #e5e7eb;
       margin-top: 4px;
     }
 
@@ -343,97 +388,102 @@
       text-align: center;
       font-size: 0.75rem;
       color: #9ca3af;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
-    /* -------- Responsive -------- */
-    @media (max-width: 600px) {
-      body {
-        padding: 0;
-      }
+    /* ---------- Responsive desktop ---------- */
+    @media (min-width: 700px) {
       .app {
-        border-radius: 0;
-        max-width: 100%;
-        min-height: 100vh;
+        padding: 18px;
+      }
+      .card {
+        margin-top: 12px;
+        margin-bottom: 12px;
       }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="app-inner">
-      <h1>Quiz des départements français</h1>
+    <div class="card">
+      <div class="card-inner">
+        <h1>DÉPARTEMENTS FR</h1>
+        <p class="subtitle">Quiz mobile pour mémoriser numéros et noms.</p>
 
-      <!-- Choix du mode de question (nom ↔ numéro) -->
-      <div class="controls">
-        <span class="control-label">Mode :</span>
-        <select id="modeSelect">
-          <option value="name-to-code">Nom → Numéro</option>
-          <option value="code-to-name">Numéro → Nom</option>
-        </select>
-      </div>
+        <!-- Contrôles principaux -->
+        <div class="top-controls">
+          <!-- Mode de question -->
+          <div class="controls-row">
+            <span class="control-label">Mode :</span>
+            <select id="modeSelect">
+              <option value="name-to-code">Nom → Numéro</option>
+              <option value="code-to-name">Numéro → Nom</option>
+            </select>
+          </div>
 
-      <!-- Choix du type de session (classique / chrono) -->
-      <div class="controls">
-        <span class="control-label">Session :</span>
-        <select id="sessionModeSelect">
-          <option value="classic">Sans chrono</option>
-          <option value="chrono">Chrono 60 s</option>
-        </select>
-        <span id="timerDisplay" class="timer hidden">60 s</span>
-      </div>
-
-      <!-- Filtre par régions -->
-      <div class="filters-card">
-        <div class="filters-header">
-          <div class="filters-title">Régions ciblées</div>
-          <button id="toggleRegionsBtn" type="button" class="chip-button">
-            Afficher / masquer les régions
-          </button>
+          <!-- Type de session (classique / chrono) -->
+          <div class="controls-row">
+            <span class="control-label">Session :</span>
+            <select id="sessionModeSelect">
+              <option value="classic">Sans chrono</option>
+              <option value="chrono">Chrono 60 s</option>
+            </select>
+            <span id="timerDisplay" class="timer hidden">60 s</span>
+          </div>
         </div>
-        <div id="regionsPanel" class="regions-panel hidden">
-          <!-- Cases à cocher de régions générées en JS -->
-        </div>
-        <div id="poolInfo" class="pool-info"></div>
-      </div>
 
-      <!-- Liste complète des départements -->
-      <div class="list-card">
-        <div class="list-header">
-          <div class="filters-title">Liste des départements</div>
-          <button id="toggleListBtn" type="button" class="chip-button">
-            Afficher / masquer la liste
-          </button>
+        <!-- Filtre par régions -->
+        <div class="filters-card">
+          <div class="filters-header">
+            <div class="filters-title">Régions ciblées</div>
+            <button id="toggleRegionsBtn" type="button" class="chip-button">
+              Filtres régions
+            </button>
+          </div>
+          <div id="regionsPanel" class="regions-panel hidden">
+            <!-- Cases à cocher générées en JS -->
+          </div>
+          <div id="poolInfo" class="pool-info"></div>
         </div>
-        <div id="departmentsList" class="departments-list hidden"></div>
-      </div>
 
-      <!-- Zone de question -->
-      <div id="questionArea">
-        <p id="questionLabel">Question</p>
-        <p id="questionText"></p>
-        <input
-          id="answerInput"
-          type="text"
-          autocomplete="off"
-          placeholder="Tape ta réponse ici…"
-        />
-        <div class="buttons">
-          <button id="validateBtn" class="primary">Valider</button>
-          <button id="nextBtn" class="secondary" disabled>Question suivante</button>
+        <!-- Liste complète des départements -->
+        <div class="list-card">
+          <div class="list-header">
+            <div class="filters-title">Liste des départements</div>
+            <button id="toggleListBtn" type="button" class="chip-button">
+              Voir / masquer
+            </button>
+          </div>
+          <div id="departmentsList" class="departments-list hidden"></div>
         </div>
-      </div>
 
-      <div id="feedback"></div>
-      <div id="score">Score : 0 / 0</div>
-      <div class="extra-info">
-        Utilise les régions pour réviser une zone précise, ou laisse tout pour travailler sur toute la France.
+        <!-- Zone de question -->
+        <div id="questionArea">
+          <p id="questionLabel">Question</p>
+          <p id="questionText"></p>
+          <input
+            id="answerInput"
+            type="text"
+            autocomplete="off"
+            placeholder="Tape ta réponse ici…"
+          />
+          <div class="buttons">
+            <button id="validateBtn" class="primary">Valider</button>
+            <button id="nextBtn" class="secondary" disabled>Suivant</button>
+          </div>
+        </div>
+
+        <div id="feedback"></div>
+        <div id="score">Score : 0 / 0</div>
+        <div class="extra-info">
+          Les questions parcourent tous les départements du pool avant de recommencer.
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // --- Données : liste des départements français avec leur région ---
+    // --- Données : départements avec région (Outre-mer regroupés) ---
     const DEPARTEMENTS = [
       // Auvergne-Rhône-Alpes
       { code: "01", name: "Ain", region: "Auvergne-Rhône-Alpes" },
@@ -557,7 +607,7 @@
       { code: "83", name: "Var", region: "Provence-Alpes-Côte d'Azur" },
       { code: "84", name: "Vaucluse", region: "Provence-Alpes-Côte d'Azur" },
 
-      // Outre-mer (regroupés)
+      // Outre-mer (catégorie unique)
       { code: "971", name: "Guadeloupe", region: "Outre-mer" },
       { code: "972", name: "Martinique", region: "Outre-mer" },
       { code: "973", name: "Guyane", region: "Outre-mer" },
@@ -592,12 +642,24 @@
     let hasAnsweredCurrent = false;
     let selectedRegions = new Set();
 
+    // "Pioche" de questions : tous les départements du pool, mélangés
+    let questionQueue = [];
+
     // Chrono
     let chronoActive = false;
     let chronoTimeLeft = 60;
     let chronoIntervalId = null;
 
     // --- Utilitaires ---
+
+    // Mélange un tableau (Fisher-Yates)
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     function normalizeCode(input) {
       let s = input.trim().toUpperCase().replace(/\s+/g, "");
@@ -637,7 +699,14 @@
       }
     }
 
-    function pickRandomDepartment() {
+    // Reconstruit la pioche de questions (tous les départements du pool, mélangés)
+    function rebuildQuestionQueue() {
+      const pool = getActiveDepartments();
+      questionQueue = shuffle(pool.slice());
+    }
+
+    // Pioche le prochain département dans la séquence
+    function pickNextDepartment() {
       const pool = getActiveDepartments();
       if (pool.length === 0) {
         currentDept = null;
@@ -648,13 +717,23 @@
         nextBtn.disabled = true;
         return;
       }
-      const index = Math.floor(Math.random() * pool.length);
-      currentDept = pool[index];
+
+      if (questionQueue.length === 0) {
+        rebuildQuestionQueue();
+      }
+
+      if (questionQueue.length === 0) {
+        currentDept = null;
+        return;
+      }
+
+      // On prend le dernier pour un simple "pop" (équivalent à un tirage unique)
+      currentDept = questionQueue.pop();
     }
 
     function updateQuestion() {
       if (!currentDept) {
-        pickRandomDepartment();
+        pickNextDepartment();
         if (!currentDept) return;
       }
 
@@ -701,9 +780,8 @@
     }
 
     function startChrono() {
-      if (chronoIntervalId) {
-        clearInterval(chronoIntervalId);
-      }
+      if (chronoIntervalId) clearInterval(chronoIntervalId);
+
       chronoActive = true;
       chronoTimeLeft = 60;
       timerDisplay.classList.remove("hidden");
@@ -713,7 +791,8 @@
         "Chrono lancé : réponds au maximum de questions en 60 secondes !";
       feedback.className = "";
 
-      pickRandomDepartment();
+      rebuildQuestionQueue();
+      pickNextDepartment();
       updateQuestion();
 
       chronoIntervalId = setInterval(() => {
@@ -807,11 +886,11 @@
     }
 
     function nextQuestion() {
-      pickRandomDepartment();
+      pickNextDepartment();
       updateQuestion();
     }
 
-    // --- Construction des filtres de régions ---
+    // --- Filtres de régions ---
 
     function buildRegionFilters() {
       const regionNames = Array.from(
@@ -834,7 +913,8 @@
             Array.from(checked).map((cb) => cb.value)
           );
           updatePoolInfo();
-          pickRandomDepartment();
+          rebuildQuestionQueue();
+          pickNextDepartment();
           updateQuestion();
         });
 
@@ -846,7 +926,7 @@
       updatePoolInfo();
     }
 
-    // --- Construction de la liste complète des départements ---
+    // --- Liste complète des départements ---
 
     function buildDepartmentsList() {
       const sorted = [...DEPARTEMENTS].sort((a, b) =>
@@ -874,7 +954,7 @@
     // --- Écouteurs d'événements ---
 
     modeSelect.addEventListener("change", () => {
-      pickRandomDepartment();
+      // On change juste la façon de poser la question, on garde le même département
       updateQuestion();
     });
 
@@ -892,7 +972,8 @@
         timerDisplay.classList.add("hidden");
         resetScore();
         feedback.textContent = "";
-        pickRandomDepartment();
+        rebuildQuestionQueue();
+        pickNextDepartment();
         updateQuestion();
       }
     });
@@ -917,7 +998,8 @@
     // --- Initialisation ---
     buildRegionFilters();
     buildDepartmentsList();
-    pickRandomDepartment();
+    rebuildQuestionQueue();
+    pickNextDepartment();
     updateQuestion();
     updateScore();
   </script>
