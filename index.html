@@ -5,7 +5,7 @@
   <title>Quiz des départements français</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* ---------- Base & fond (mobile first) ---------- */
+    /* ---------- Base & fond pastel (mobile first) ---------- */
     * {
       box-sizing: border-box;
     }
@@ -19,10 +19,10 @@
       align-items: stretch;
       justify-content: center;
       background:
-        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.45), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.4), transparent 50%),
-        linear-gradient(145deg, #020617, #0f172a);
-      color: #f9fafb;
+        radial-gradient(circle at 0% 0%, rgba(191, 219, 254, 0.7), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(209, 250, 229, 0.7), transparent 55%),
+        linear-gradient(135deg, #f9fafb, #e5e7eb);
+      color: #111827;
     }
 
     .hidden {
@@ -33,17 +33,17 @@
       flex: 1;
       max-width: 520px;
       margin: 0 auto;
-      padding: 10px 10px 14px;
+      padding: 12px 12px 16px;
       display: flex;
       flex-direction: column;
     }
 
     .card {
-      background: radial-gradient(circle at top left, #1e293b, #020617 65%);
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 18px;
       box-shadow:
-        0 18px 35px rgba(15, 23, 42, 0.9),
-        0 0 0 1px rgba(148, 163, 184, 0.25);
+        0 12px 30px rgba(15, 23, 42, 0.10),
+        0 0 0 1px rgba(209, 213, 219, 0.8);
       padding: 16px 16px 14px;
       flex: 1;
       display: flex;
@@ -55,14 +55,12 @@
     .card::before {
       content: "";
       position: absolute;
-      inset: -40%;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.25), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.25), transparent 55%),
-        radial-gradient(circle at 30% 120%, rgba(244, 63, 94, 0.25), transparent 60%);
-      opacity: 0.9;
+      inset: 0;
       pointer-events: none;
-      mix-blend-mode: screen;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(196, 181, 253, 0.18), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(167, 243, 208, 0.18), transparent 55%);
+      opacity: 1;
     }
 
     .card-inner {
@@ -74,19 +72,19 @@
     }
 
     h1 {
-      font-size: 1.4rem;
-      margin: 2px 0 8px;
+      font-size: 1.35rem;
+      margin: 4px 0 4px;
       text-align: center;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: #e5e7eb;
+      color: #111827;
     }
 
     .subtitle {
       text-align: center;
       font-size: 0.8rem;
-      color: #9ca3af;
-      margin-bottom: 8px;
+      color: #6b7280;
+      margin-bottom: 10px;
     }
 
     /* ---------- Barres de contrôle ---------- */
@@ -94,7 +92,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .controls-row {
@@ -107,7 +105,7 @@
 
     .control-label {
       font-size: 0.85rem;
-      color: #cbd5f5;
+      color: #4b5563;
       white-space: nowrap;
     }
 
@@ -116,26 +114,26 @@
       padding: 8px 10px;
       font-size: 0.9rem;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.85);
-      color: #e5e7eb;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #111827;
       outline: none;
       min-width: 0;
     }
 
     select:focus {
-      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.75);
-      border-color: rgba(59, 130, 246, 0.9);
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.35);
+      border-color: #818cf8;
     }
 
     .timer {
       font-size: 0.85rem;
       font-weight: 600;
-      color: #fecaca;
+      color: #b91c1c;
       padding: 4px 10px;
       border-radius: 999px;
-      background: rgba(127, 29, 29, 0.9);
-      border: 1px solid rgba(248, 113, 113, 0.75);
+      background: #fee2e2;
+      border: 1px solid #fecaca;
       white-space: nowrap;
     }
 
@@ -144,10 +142,10 @@
       cursor: pointer;
       padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(129, 140, 248, 0.7);
-      background: rgba(30, 64, 175, 0.9);
+      border: 1px solid #c4b5fd;
+      background: #ede9fe;
       font-size: 0.75rem;
-      color: #e5e7eb;
+      color: #4c1d95;
       font-weight: 500;
       transition: background 0.12s ease, transform 0.05s ease,
         box-shadow 0.12s ease, border-color 0.12s ease;
@@ -155,20 +153,20 @@
     }
 
     .chip-button:hover {
-      background: rgba(79, 70, 229, 0.98);
-      box-shadow: 0 2px 8px rgba(129, 140, 248, 0.7);
+      background: #e0e7ff;
+      box-shadow: 0 2px 6px rgba(129, 140, 248, 0.4);
       transform: translateY(-0.5px);
-      border-color: rgba(191, 219, 254, 0.9);
+      border-color: #a5b4fc;
     }
 
     /* ---------- Carte filtres régions & liste ---------- */
     .filters-card,
     .list-card {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 64, 175, 0.55));
+      background: #f9fafb;
       border-radius: 14px;
       padding: 8px 10px;
       margin-bottom: 8px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid #e5e7eb;
     }
 
     .filters-header,
@@ -184,8 +182,8 @@
       font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #cbd5f5;
+      letter-spacing: 0.10em;
+      color: #6b7280;
     }
 
     .regions-panel {
@@ -203,16 +201,16 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      color: #e5e7eb;
+      color: #374151;
     }
 
     .region-option input {
-      accent-color: #60a5fa;
+      accent-color: #818cf8;
     }
 
     .pool-info {
       font-size: 0.75rem;
-      color: #cbd5f5;
+      color: #6b7280;
     }
 
     /* ---------- Liste des départements ---------- */
@@ -220,9 +218,9 @@
       max-height: 150px;
       overflow-y: auto;
       font-size: 0.8rem;
-      background: rgba(15, 23, 42, 0.9);
+      background: #f3f4f6;
       border-radius: 10px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
+      border: 1px solid #e5e7eb;
     }
 
     .dept-table {
@@ -233,7 +231,7 @@
     .dept-table th,
     .dept-table td {
       padding: 4px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      border-bottom: 1px solid #e5e7eb;
       text-align: left;
       white-space: nowrap;
     }
@@ -242,8 +240,8 @@
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #9ca3af;
-      background: rgba(15, 23, 42, 0.95);
+      color: #6b7280;
+      background: #f9fafb;
       position: sticky;
       top: 0;
       z-index: 1;
@@ -251,15 +249,15 @@
 
     .dept-table td.code {
       font-weight: 600;
-      color: #e5e7eb;
+      color: #111827;
     }
 
     .dept-table td.name {
-      color: #e5e7eb;
+      color: #111827;
     }
 
     .dept-table td.region {
-      color: #9ca3af;
+      color: #6b7280;
     }
 
     /* ---------- Zone de question ---------- */
@@ -267,25 +265,25 @@
       margin-top: 6px;
       margin-bottom: 8px;
       text-align: center;
-      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.9), rgba(15, 23, 42, 0.98));
+      background: linear-gradient(135deg, #eef2ff, #e0f2fe);
       border-radius: 16px;
       padding: 12px 10px 14px;
-      border: 1px solid rgba(129, 140, 248, 0.9);
+      border: 1px solid #dbeafe;
     }
 
     #questionLabel {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: #bfdbfe;
+      color: #4f46e5;
       margin: 0 0 4px;
     }
 
     #questionText {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       margin-bottom: 10px;
       font-weight: 600;
-      color: #f9fafb;
+      color: #111827;
     }
 
     #answerInput {
@@ -293,20 +291,20 @@
       padding: 10px 12px;
       font-size: 1rem;
       border-radius: 999px;
-      border: 1px solid rgba(191, 219, 254, 0.9);
+      border: 1px solid #cbd5e1;
       margin-bottom: 10px;
       outline: none;
-      background: rgba(15, 23, 42, 0.95);
-      color: #f9fafb;
+      background: #ffffff;
+      color: #111827;
     }
 
     #answerInput::placeholder {
-      color: #6b7280;
+      color: #9ca3af;
     }
 
     #answerInput:focus {
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.7);
+      border-color: #818cf8;
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.4);
     }
 
     /* ---------- Boutons principaux ---------- */
@@ -319,12 +317,12 @@
 
     button {
       cursor: pointer;
-      padding: 10px 16px;
+      padding: 9px 16px;
       border-radius: 999px;
       border: none;
       font-size: 0.95rem;
       font-weight: 600;
-      background: #2563eb;
+      background: #4f46e5;
       color: #ffffff;
       transition: transform 0.05s ease, box-shadow 0.1s ease,
         background 0.1s ease, opacity 0.1s ease;
@@ -332,25 +330,24 @@
     }
 
     button.primary {
-      background: radial-gradient(circle at top left, #38bdf8, #2563eb);
-      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.7);
+      background: linear-gradient(135deg, #818cf8, #4f46e5);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
     }
 
     button.secondary {
-      background: rgba(31, 41, 55, 0.95);
-      color: #e5e7eb;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.9);
+      background: #e5e7eb;
+      color: #111827;
+      box-shadow: 0 3px 10px rgba(148, 163, 184, 0.4);
     }
 
     button:not([disabled]):hover {
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.9);
+      box-shadow: 0 5px 14px rgba(79, 70, 229, 0.45);
       transform: translateY(-1px);
     }
 
     button.secondary:not([disabled]):hover {
-      background: rgba(55, 65, 81, 0.98);
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
+      background: #d1d5db;
+      box-shadow: 0 5px 12px rgba(148, 163, 184, 0.5);
     }
 
     button[disabled] {
@@ -370,31 +367,31 @@
     }
 
     #feedback.ok {
-      color: #bbf7d0;
+      color: #15803d;
     }
 
     #feedback.ko {
-      color: #fecaca;
+      color: #b91c1c;
     }
 
     #score {
       text-align: center;
       font-size: 0.9rem;
-      color: #e5e7eb;
+      color: #374151;
       margin-top: 4px;
     }
 
     .extra-info {
       text-align: center;
       font-size: 0.75rem;
-      color: #9ca3af;
-      margin-top: 2px;
+      color: #6b7280;
+      margin-top: 4px;
     }
 
     /* ---------- Responsive desktop ---------- */
     @media (min-width: 700px) {
       .app {
-        padding: 18px;
+        padding: 20px;
       }
       .card {
         margin-top: 12px;
@@ -407,8 +404,8 @@
   <div class="app">
     <div class="card">
       <div class="card-inner">
-        <h1>DÉPARTEMENTS FR</h1>
-        <p class="subtitle">Quiz mobile pour mémoriser numéros et noms.</p>
+        <h1>Départements FR</h1>
+        <p class="subtitle">Un quiz simple pour mémoriser numéros et noms.</p>
 
         <!-- Contrôles principaux -->
         <div class="top-controls">
@@ -476,7 +473,7 @@
         <div id="feedback"></div>
         <div id="score">Score : 0 / 0</div>
         <div class="extra-info">
-          Les questions parcourent tous les départements du pool avant de recommencer.
+          Les questions parcourent tous les départements sélectionnés avant de recommencer.
         </div>
       </div>
     </div>
@@ -652,7 +649,6 @@
 
     // --- Utilitaires ---
 
-    // Mélange un tableau (Fisher-Yates)
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -699,13 +695,11 @@
       }
     }
 
-    // Reconstruit la pioche de questions (tous les départements du pool, mélangés)
     function rebuildQuestionQueue() {
       const pool = getActiveDepartments();
       questionQueue = shuffle(pool.slice());
     }
 
-    // Pioche le prochain département dans la séquence
     function pickNextDepartment() {
       const pool = getActiveDepartments();
       if (pool.length === 0) {
@@ -727,7 +721,6 @@
         return;
       }
 
-      // On prend le dernier pour un simple "pop" (équivalent à un tirage unique)
       currentDept = questionQueue.pop();
     }
 
@@ -788,7 +781,7 @@
       updateTimerDisplay();
       resetScore();
       feedback.textContent =
-        "Chrono lancé : réponds au maximum de questions en 60 secondes !";
+        "Chrono lancé : réponds au maximum de questions en 60 secondes.";
       feedback.className = "";
 
       rebuildQuestionQueue();
@@ -951,11 +944,10 @@
       departmentsListEl.innerHTML = html;
     }
 
-    // --- Écouteurs d'événements ---
+    // --- Événements ---
 
     modeSelect.addEventListener("change", () => {
-      // On change juste la façon de poser la question, on garde le même département
-      updateQuestion();
+      updateQuestion(); // on garde le même département, on change juste la formulation
     });
 
     sessionModeSelect.addEventListener("change", () => {
@@ -963,7 +955,6 @@
       if (mode === "chrono") {
         startChrono();
       } else {
-        // Retour en mode classique
         if (chronoIntervalId) {
           clearInterval(chronoIntervalId);
           chronoIntervalId = null;
