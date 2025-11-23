@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz des départements français</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* -------- Styles de base & fond -------- */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.25), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(236, 72, 153, 0.2), transparent 55%),
+        linear-gradient(135deg, #e5e7eb, #f9fafb);
+      color: #111827;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 20px 20px 18px;
+      border-radius: 18px;
+      box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.22),
+        0 0 0 1px rgba(148, 163, 184, 0.35);
+      width: 100%;
+      max-width: 520px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.08), transparent 50%),
+        radial-gradient(circle at 90% 100%, rgba(52, 211, 153, 0.1), transparent 55%);
+      opacity: 0.9;
+    }
+
+    .app-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 10px;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    /* -------- Barres de contrôle -------- */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .control-label {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    select {
+      padding: 7px 10px;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      background: #f9fafb;
+      color: #111827;
+      outline: none;
+      min-width: 180px;
+    }
+
+    select:focus {
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+
+    .timer {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #dc2626;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+    }
+
+    /* -------- Boutons "chip" -------- */
+    .chip-button {
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      background: #eef2ff;
+      font-size: 0.75rem;
+      color: #1d4ed8;
+      font-weight: 500;
+      transition: background 0.15s ease, transform 0.05s ease,
+        box-shadow 0.1s ease, border-color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .chip-button:hover {
+      background: #e0e7ff;
+      box-shadow: 0 2px 6px rgba(129, 140, 248, 0.45);
+      transform: translateY(-0.5px);
+      border-color: #93c5fd;
+    }
+
+    /* -------- Carte de filtres régions -------- */
+    .filters-card,
+    .list-card {
+      background: rgba(249, 250, 251, 0.95);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    .filters-header,
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .filters-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
+
+    .regions-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 4px 8px;
+      max-height: 130px;
+      overflow-y: auto;
+      padding-top: 4px;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+    }
+
+    .region-option {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #4b5563;
+    }
+
+    .region-option input {
+      accent-color: #2563eb;
+    }
+
+    .pool-info {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    /* -------- Liste des départements -------- */
+    .departments-list {
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .dept-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .dept-table th,
+    .dept-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .dept-table th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      background: #f3f4f6;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .dept-table td.code {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .dept-table td.name {
+      color: #111827;
+    }
+
+    .dept-table td.region {
+      color: #6b7280;
+    }
+
+    /* -------- Zone de question -------- */
+    #questionArea {
+      margin-bottom: 10px;
+      text-align: center;
+      background: rgba(239, 246, 255, 0.9);
+      border-radius: 14px;
+      padding: 12px 12px 14px;
+      border: 1px solid rgba(191, 219, 254, 0.9);
+    }
+
+    #questionLabel {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #3b82f6;
+      margin: 0 0 4px;
+    }
+
+    #questionText {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    #answerInput {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      margin-bottom: 10px;
+      outline: none;
+      background: #ffffff;
+    }
+
+    #answerInput:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    /* -------- Boutons principaux -------- */
+    .buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      background: #2563eb;
+      color: #ffffff;
+      transition: transform 0.05s ease, box-shadow 0.1s ease,
+        background 0.1s ease, opacity 0.1s ease;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:not([disabled]):hover {
+      box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+
+    button.secondary:not([disabled]):hover {
+      background: #d1d5db;
+      box-shadow: 0 3px 8px rgba(148, 163, 184, 0.6);
+    }
+
+    button[disabled] {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* -------- Feedback & score -------- */
+    #feedback {
+      min-height: 32px;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    #feedback.ok {
+      color: #166534;
+    }
+
+    #feedback.ko {
+      color: #b91c1c;
+    }
+
+    #score {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+
+    .extra-info {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    /* -------- Responsive -------- */
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+      .app {
+        border-radius: 0;
+        max-width: 100%;
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="app-inner">
+      <h1>Quiz des départements français</h1>
+
+      <!-- Choix du mode de question (nom ↔ numéro) -->
+      <div class="controls">
+        <span class="control-label">Mode :</span>
+        <select id="modeSelect">
+          <option value="name-to-code">Nom → Numéro</option>
+          <option value="code-to-name">Numéro → Nom</option>
+        </select>
+      </div>
+
+      <!-- Choix du type de session (classique / chrono) -->
+      <div class="controls">
+        <span class="control-label">Session :</span>
+        <select id="sessionModeSelect">
+          <option value="classic">Sans chrono</option>
+          <option value="chrono">Chrono 60 s</option>
+        </select>
+        <span id="timerDisplay" class="timer hidden">60 s</span>
+      </div>
+
+      <!-- Filtre par régions -->
+      <div class="filters-card">
+        <div class="filters-header">
+          <div class="filters-title">Régions ciblées</div>
+          <button id="toggleRegionsBtn" type="button" class="chip-button">
+            Afficher / masquer les régions
+          </button>
+        </div>
+        <div id="regionsPanel" class="regions-panel hidden">
+          <!-- Cases à cocher de régions générées en JS -->
+        </div>
+        <div id="poolInfo" class="pool-info"></div>
+      </div>
+
+      <!-- Liste complète des départements -->
+      <div class="list-card">
+        <div class="list-header">
+          <div class="filters-title">Liste des départements</div>
+          <button id="toggleListBtn" type="button" class="chip-button">
+            Afficher / masquer la liste
+          </button>
+        </div>
+        <div id="departmentsList" class="departments-list hidden"></div>
+      </div>
+
+      <!-- Zone de question -->
+      <div id="questionArea">
+        <p id="questionLabel">Question</p>
+        <p id="questionText"></p>
+        <input
+          id="answerInput"
+          type="text"
+          autocomplete="off"
+          placeholder="Tape ta réponse ici…"
+        />
+        <div class="buttons">
+          <button id="validateBtn" class="primary">Valider</button>
+          <button id="nextBtn" class="secondary" disabled>Question suivante</button>
+        </div>
+      </div>
+
+      <div id="feedback"></div>
+      <div id="score">Score : 0 / 0</div>
+      <div class="extra-info">
+        Utilise les régions pour réviser une zone précise, ou laisse tout pour travailler sur toute la France.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Données : liste des départements français avec leur région ---
+    const DEPARTEMENTS = [
+      // Auvergne-Rhône-Alpes
+      { code: "01", name: "Ain", region: "Auvergne-Rhône-Alpes" },
+      { code: "03", name: "Allier", region: "Auvergne-Rhône-Alpes" },
+      { code: "07", name: "Ardèche", region: "Auvergne-Rhône-Alpes" },
+      { code: "15", name: "Cantal", region: "Auvergne-Rhône-Alpes" },
+      { code: "26", name: "Drôme", region: "Auvergne-Rhône-Alpes" },
+      { code: "38", name: "Isère", region: "Auvergne-Rhône-Alpes" },
+      { code: "42", name: "Loire", region: "Auvergne-Rhône-Alpes" },
+      { code: "43", name: "Haute-Loire", region: "Auvergne-Rhône-Alpes" },
+      { code: "63", name: "Puy-de-Dôme", region: "Auvergne-Rhône-Alpes" },
+      { code: "69", name: "Rhône", region: "Auvergne-Rhône-Alpes" },
+      { code: "73", name: "Savoie", region: "Auvergne-Rhône-Alpes" },
+      { code: "74", name: "Haute-Savoie", region: "Auvergne-Rhône-Alpes" },
+
+      // Bourgogne-Franche-Comté
+      { code: "21", name: "Côte-d'Or", region: "Bourgogne-Franche-Comté" },
+      { code: "25", name: "Doubs", region: "Bourgogne-Franche-Comté" },
+      { code: "39", name: "Jura", region: "Bourgogne-Franche-Comté" },
+      { code: "58", name: "Nièvre", region: "Bourgogne-Franche-Comté" },
+      { code: "70", name: "Haute-Saône", region: "Bourgogne-Franche-Comté" },
+      { code: "71", name: "Saône-et-Loire", region: "Bourgogne-Franche-Comté" },
+      { code: "89", name: "Yonne", region: "Bourgogne-Franche-Comté" },
+      { code: "90", name: "Territoire de Belfort", region: "Bourgogne-Franche-Comté" },
+
+      // Bretagne
+      { code: "22", name: "Côtes-d'Armor", region: "Bretagne" },
+      { code: "29", name: "Finistère", region: "Bretagne" },
+      { code: "35", name: "Ille-et-Vilaine", region: "Bretagne" },
+      { code: "56", name: "Morbihan", region: "Bretagne" },
+
+      // Centre-Val de Loire
+      { code: "18", name: "Cher", region: "Centre-Val de Loire" },
+      { code: "28", name: "Eure-et-Loir", region: "Centre-Val de Loire" },
+      { code: "36", name: "Indre", region: "Centre-Val de Loire" },
+      { code: "37", name: "Indre-et-Loire", region: "Centre-Val de Loire" },
+      { code: "41", name: "Loir-et-Cher", region: "Centre-Val de Loire" },
+      { code: "45", name: "Loiret", region: "Centre-Val de Loire" },
+
+      // Corse
+      { code: "2A", name: "Corse-du-Sud", region: "Corse" },
+      { code: "2B", name: "Haute-Corse", region: "Corse" },
+
+      // Grand Est
+      { code: "08", name: "Ardennes", region: "Grand Est" },
+      { code: "10", name: "Aube", region: "Grand Est" },
+      { code: "51", name: "Marne", region: "Grand Est" },
+      { code: "52", name: "Haute-Marne", region: "Grand Est" },
+      { code: "54", name: "Meurthe-et-Moselle", region: "Grand Est" },
+      { code: "55", name: "Meuse", region: "Grand Est" },
+      { code: "57", name: "Moselle", region: "Grand Est" },
+      { code: "67", name: "Bas-Rhin", region: "Grand Est" },
+      { code: "68", name: "Haut-Rhin", region: "Grand Est" },
+      { code: "88", name: "Vosges", region: "Grand Est" },
+
+      // Hauts-de-France
+      { code: "02", name: "Aisne", region: "Hauts-de-France" },
+      { code: "59", name: "Nord", region: "Hauts-de-France" },
+      { code: "60", name: "Oise", region: "Hauts-de-France" },
+      { code: "62", name: "Pas-de-Calais", region: "Hauts-de-France" },
+      { code: "80", name: "Somme", region: "Hauts-de-France" },
+
+      // Île-de-France
+      { code: "75", name: "Paris", region: "Île-de-France" },
+      { code: "77", name: "Seine-et-Marne", region: "Île-de-France" },
+      { code: "78", name: "Yvelines", region: "Île-de-France" },
+      { code: "91", name: "Essonne", region: "Île-de-France" },
+      { code: "92", name: "Hauts-de-Seine", region: "Île-de-France" },
+      { code: "93", name: "Seine-Saint-Denis", region: "Île-de-France" },
+      { code: "94", name: "Val-de-Marne", region: "Île-de-France" },
+      { code: "95", name: "Val-d'Oise", region: "Île-de-France" },
+
+      // Normandie
+      { code: "14", name: "Calvados", region: "Normandie" },
+      { code: "27", name: "Eure", region: "Normandie" },
+      { code: "50", name: "Manche", region: "Normandie" },
+      { code: "61", name: "Orne", region: "Normandie" },
+      { code: "76", name: "Seine-Maritime", region: "Normandie" },
+
+      // Nouvelle-Aquitaine
+      { code: "16", name: "Charente", region: "Nouvelle-Aquitaine" },
+      { code: "17", name: "Charente-Maritime", region: "Nouvelle-Aquitaine" },
+      { code: "19", name: "Corrèze", region: "Nouvelle-Aquitaine" },
+      { code: "23", name: "Creuse", region: "Nouvelle-Aquitaine" },
+      { code: "24", name: "Dordogne", region: "Nouvelle-Aquitaine" },
+      { code: "33", name: "Gironde", region: "Nouvelle-Aquitaine" },
+      { code: "40", name: "Landes", region: "Nouvelle-Aquitaine" },
+      { code: "47", name: "Lot-et-Garonne", region: "Nouvelle-Aquitaine" },
+      { code: "64", name: "Pyrénées-Atlantiques", region: "Nouvelle-Aquitaine" },
+      { code: "79", name: "Deux-Sèvres", region: "Nouvelle-Aquitaine" },
+      { code: "86", name: "Vienne", region: "Nouvelle-Aquitaine" },
+      { code: "87", name: "Haute-Vienne", region: "Nouvelle-Aquitaine" },
+
+      // Occitanie
+      { code: "09", name: "Ariège", region: "Occitanie" },
+      { code: "11", name: "Aude", region: "Occitanie" },
+      { code: "12", name: "Aveyron", region: "Occitanie" },
+      { code: "30", name: "Gard", region: "Occitanie" },
+      { code: "31", name: "Haute-Garonne", region: "Occitanie" },
+      { code: "32", name: "Gers", region: "Occitanie" },
+      { code: "34", name: "Hérault", region: "Occitanie" },
+      { code: "46", name: "Lot", region: "Occitanie" },
+      { code: "48", name: "Lozère", region: "Occitanie" },
+      { code: "65", name: "Hautes-Pyrénées", region: "Occitanie" },
+      { code: "66", name: "Pyrénées-Orientales", region: "Occitanie" },
+      { code: "81", name: "Tarn", region: "Occitanie" },
+      { code: "82", name: "Tarn-et-Garonne", region: "Occitanie" },
+
+      // Pays de la Loire
+      { code: "44", name: "Loire-Atlantique", region: "Pays de la Loire" },
+      { code: "49", name: "Maine-et-Loire", region: "Pays de la Loire" },
+      { code: "53", name: "Mayenne", region: "Pays de la Loire" },
+      { code: "72", name: "Sarthe", region: "Pays de la Loire" },
+      { code: "85", name: "Vendée", region: "Pays de la Loire" },
+
+      // Provence-Alpes-Côte d'Azur
+      { code: "04", name: "Alpes-de-Haute-Provence", region: "Provence-Alpes-Côte d'Azur" },
+      { code: "05", name: "Hautes-Alpes", region: "Provence-Alpes-Côte d'Azur" },
+      { code: "06", name: "Alpes-Maritimes", region: "Provence-Alpes-Côte d'Azur" },
+      { code: "13", name: "Bouches-du-Rhône", region: "Provence-Alpes-Côte d'Azur" },
+      { code: "83", name: "Var", region: "Provence-Alpes-Côte d'Azur" },
+      { code: "84", name: "Vaucluse", region: "Provence-Alpes-Côte d'Azur" },
+
+      // Outre-mer (regroupés)
+      { code: "971", name: "Guadeloupe", region: "Outre-mer" },
+      { code: "972", name: "Martinique", region: "Outre-mer" },
+      { code: "973", name: "Guyane", region: "Outre-mer" },
+      { code: "974", name: "La Réunion", region: "Outre-mer" },
+      { code: "976", name: "Mayotte", region: "Outre-mer" }
+    ];
+
+    // --- Références DOM ---
+    const modeSelect = document.getElementById("modeSelect");
+    const sessionModeSelect = document.getElementById("sessionModeSelect");
+    const timerDisplay = document.getElementById("timerDisplay");
+
+    const questionText = document.getElementById("questionText");
+    const questionLabel = document.getElementById("questionLabel");
+    const answerInput = document.getElementById("answerInput");
+    const validateBtn = document.getElementById("validateBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const feedback = document.getElementById("feedback");
+    const scoreEl = document.getElementById("score");
+
+    const regionsPanel = document.getElementById("regionsPanel");
+    const toggleRegionsBtn = document.getElementById("toggleRegionsBtn");
+    const poolInfo = document.getElementById("poolInfo");
+
+    const departmentsListEl = document.getElementById("departmentsList");
+    const toggleListBtn = document.getElementById("toggleListBtn");
+
+    // --- État du quiz ---
+    let currentDept = null;
+    let totalQuestions = 0;
+    let goodAnswers = 0;
+    let hasAnsweredCurrent = false;
+    let selectedRegions = new Set();
+
+    // Chrono
+    let chronoActive = false;
+    let chronoTimeLeft = 60;
+    let chronoIntervalId = null;
+
+    // --- Utilitaires ---
+
+    function normalizeCode(input) {
+      let s = input.trim().toUpperCase().replace(/\s+/g, "");
+      if (/^\d+$/.test(s) && s.length === 1) {
+        s = "0" + s;
+      }
+      return s;
+    }
+
+    function normalizeName(str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[-'’]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getActiveDepartments() {
+      if (selectedRegions.size === 0) return DEPARTEMENTS;
+      return DEPARTEMENTS.filter((d) => selectedRegions.has(d.region));
+    }
+
+    function updatePoolInfo() {
+      const poolSize = getActiveDepartments().length;
+      if (selectedRegions.size === 0) {
+        poolInfo.textContent =
+          "Régions : toutes (" + poolSize + " départements utilisés).";
+      } else {
+        poolInfo.textContent =
+          "Régions filtrées : " +
+          selectedRegions.size +
+          " (" +
+          poolSize +
+          " départements utilisés).";
+      }
+    }
+
+    function pickRandomDepartment() {
+      const pool = getActiveDepartments();
+      if (pool.length === 0) {
+        currentDept = null;
+        questionText.textContent =
+          "Aucun département disponible. Décoche quelques régions pour continuer.";
+        answerInput.disabled = true;
+        validateBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+      const index = Math.floor(Math.random() * pool.length);
+      currentDept = pool[index];
+    }
+
+    function updateQuestion() {
+      if (!currentDept) {
+        pickRandomDepartment();
+        if (!currentDept) return;
+      }
+
+      const mode = modeSelect.value;
+      feedback.textContent = "";
+      feedback.className = "";
+      answerInput.value = "";
+      answerInput.disabled = false;
+      answerInput.focus();
+      hasAnsweredCurrent = false;
+      validateBtn.disabled = false;
+      nextBtn.disabled = true;
+
+      questionLabel.textContent =
+        mode === "name-to-code"
+          ? "Nom du département"
+          : "Numéro du département";
+
+      if (mode === "name-to-code") {
+        questionText.textContent =
+          "Quel est le numéro du département : « " + currentDept.name + " » ?";
+        answerInput.placeholder = "Ex : 75";
+      } else {
+        questionText.textContent =
+          "Quel est le nom du département numéro « " + currentDept.code + " » ?";
+        answerInput.placeholder = "Ex : Paris";
+      }
+    }
+
+    function updateScore() {
+      scoreEl.textContent = "Score : " + goodAnswers + " / " + totalQuestions;
+    }
+
+    function resetScore() {
+      totalQuestions = 0;
+      goodAnswers = 0;
+      updateScore();
+    }
+
+    // --- Chrono ---
+
+    function updateTimerDisplay() {
+      timerDisplay.textContent = chronoTimeLeft + " s";
+    }
+
+    function startChrono() {
+      if (chronoIntervalId) {
+        clearInterval(chronoIntervalId);
+      }
+      chronoActive = true;
+      chronoTimeLeft = 60;
+      timerDisplay.classList.remove("hidden");
+      updateTimerDisplay();
+      resetScore();
+      feedback.textContent =
+        "Chrono lancé : réponds au maximum de questions en 60 secondes !";
+      feedback.className = "";
+
+      pickRandomDepartment();
+      updateQuestion();
+
+      chronoIntervalId = setInterval(() => {
+        chronoTimeLeft--;
+        if (chronoTimeLeft <= 0) {
+          endChrono();
+        } else {
+          updateTimerDisplay();
+        }
+      }, 1000);
+    }
+
+    function endChrono() {
+      if (!chronoActive) return;
+      chronoActive = false;
+      if (chronoIntervalId) {
+        clearInterval(chronoIntervalId);
+        chronoIntervalId = null;
+      }
+      chronoTimeLeft = 0;
+      updateTimerDisplay();
+
+      feedback.textContent =
+        "Temps écoulé ! Résultat : " +
+        goodAnswers +
+        " bonne(s) réponse(s) sur " +
+        totalQuestions +
+        ".";
+      feedback.className = "";
+      answerInput.disabled = true;
+      validateBtn.disabled = true;
+      nextBtn.disabled = true;
+    }
+
+    // --- Vérification de la réponse ---
+
+    function checkAnswer() {
+      if (hasAnsweredCurrent) return;
+
+      const mode = modeSelect.value;
+      const rawAnswer = answerInput.value;
+
+      if (!rawAnswer.trim()) {
+        feedback.textContent = "Entre une réponse avant de valider.";
+        feedback.className = "ko";
+        return;
+      }
+
+      hasAnsweredCurrent = true;
+      validateBtn.disabled = true;
+      answerInput.disabled = true;
+      nextBtn.disabled = false;
+
+      totalQuestions++;
+
+      let isCorrect = false;
+      let correctText = "";
+
+      if (mode === "name-to-code") {
+        const expectedCode = currentDept.code;
+        const userCode = normalizeCode(rawAnswer);
+        isCorrect = userCode === expectedCode;
+        correctText =
+          "Réponse attendue : " +
+          currentDept.code +
+          " (" +
+          currentDept.name +
+          ").";
+      } else {
+        const expectedNameNorm = normalizeName(currentDept.name);
+        const userNameNorm = normalizeName(rawAnswer);
+        isCorrect = userNameNorm === expectedNameNorm;
+        correctText =
+          "Réponse attendue : " +
+          currentDept.name +
+          " (numéro " +
+          currentDept.code +
+          ").";
+      }
+
+      if (isCorrect) {
+        goodAnswers++;
+        feedback.textContent = "C'est correct. " + correctText;
+        feedback.className = "ok";
+      } else {
+        feedback.textContent = "Ce n'est pas correct. " + correctText;
+        feedback.className = "ko";
+      }
+
+      updateScore();
+    }
+
+    function nextQuestion() {
+      pickRandomDepartment();
+      updateQuestion();
+    }
+
+    // --- Construction des filtres de régions ---
+
+    function buildRegionFilters() {
+      const regionNames = Array.from(
+        new Set(DEPARTEMENTS.map((d) => d.region))
+      ).sort();
+
+      regionNames.forEach((region) => {
+        const label = document.createElement("label");
+        label.className = "region-option";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = region;
+
+        checkbox.addEventListener("change", () => {
+          const checked = regionsPanel.querySelectorAll(
+            "input[type='checkbox']:checked"
+          );
+          selectedRegions = new Set(
+            Array.from(checked).map((cb) => cb.value)
+          );
+          updatePoolInfo();
+          pickRandomDepartment();
+          updateQuestion();
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(region));
+        regionsPanel.appendChild(label);
+      });
+
+      updatePoolInfo();
+    }
+
+    // --- Construction de la liste complète des départements ---
+
+    function buildDepartmentsList() {
+      const sorted = [...DEPARTEMENTS].sort((a, b) =>
+        a.code.localeCompare(b.code, "fr", { numeric: true })
+      );
+
+      let html =
+        '<table class="dept-table"><thead><tr>' +
+        "<th>Code</th><th>Département</th><th>Région</th>" +
+        "</tr></thead><tbody>";
+
+      for (const d of sorted) {
+        html +=
+          "<tr>" +
+          '<td class="code">' + d.code + "</td>" +
+          '<td class="name">' + d.name + "</td>" +
+          '<td class="region">' + d.region + "</td>" +
+          "</tr>";
+      }
+
+      html += "</tbody></table>";
+      departmentsListEl.innerHTML = html;
+    }
+
+    // --- Écouteurs d'événements ---
+
+    modeSelect.addEventListener("change", () => {
+      pickRandomDepartment();
+      updateQuestion();
+    });
+
+    sessionModeSelect.addEventListener("change", () => {
+      const mode = sessionModeSelect.value;
+      if (mode === "chrono") {
+        startChrono();
+      } else {
+        // Retour en mode classique
+        if (chronoIntervalId) {
+          clearInterval(chronoIntervalId);
+          chronoIntervalId = null;
+        }
+        chronoActive = false;
+        timerDisplay.classList.add("hidden");
+        resetScore();
+        feedback.textContent = "";
+        pickRandomDepartment();
+        updateQuestion();
+      }
+    });
+
+    validateBtn.addEventListener("click", checkAnswer);
+    nextBtn.addEventListener("click", nextQuestion);
+
+    answerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !validateBtn.disabled) {
+        checkAnswer();
+      }
+    });
+
+    toggleRegionsBtn.addEventListener("click", () => {
+      regionsPanel.classList.toggle("hidden");
+    });
+
+    toggleListBtn.addEventListener("click", () => {
+      departmentsListEl.classList.toggle("hidden");
+    });
+
+    // --- Initialisation ---
+    buildRegionFilters();
+    buildDepartmentsList();
+    pickRandomDepartment();
+    updateQuestion();
+    updateScore();
+  </script>
+</body>
+</html>
